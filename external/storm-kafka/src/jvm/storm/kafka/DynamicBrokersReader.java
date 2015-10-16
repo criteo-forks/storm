@@ -65,7 +65,13 @@ public class DynamicBrokersReader {
             int numPartitionsForTopic = getNumPartitions();
             String brokerInfoPath = brokerPath();
             for (int partition = 0; partition < numPartitionsForTopic; partition++) {
-                int leader = getLeaderFor(partition);
+                int leader;
+                try {
+                    leader = getLeaderFor(partition);
+                } catch (RuntimeException e){
+                    LOG.warn("Partition {} has no leader. Skipping.", partition);
+                    continue;
+                }
                 String path = brokerInfoPath + "/" + leader;
                 try {
                     byte[] brokerData = _curator.getData().forPath(path);
